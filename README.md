@@ -9,7 +9,7 @@
 ```sql
 SELECT
 	strftime("%Y-%m-01", "date"),
-	SUM(CAST(amount AS REAL)/1000)
+	CAST(SUM(amount) AS REAL)/1000
 FROM "transaction"
 GROUP BY strftime("%Y-%m-01", "date")
 ORDER BY "date";

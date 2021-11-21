@@ -119,7 +119,7 @@ type Transactions struct {
 				PayeeName             string `json:"payee_name"`
 				CategoryId            string `json:"category_id"`
 				CategoryName          string `json:"category_name"`
-				TransactionAccountId  string `json:"transfer_account_id"`
+				TransferAccountId  string `json:"transfer_account_id"`
 				TransferTransactionId string `json:"transfer_transaction_id"`
 				Deleted               bool   `json:"deleted"`
 			} `json:"subtransactions"`
