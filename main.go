@@ -1,15 +1,19 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 )
 
 type category struct {
 	Id                string `json:"id"`
+	CategoryGroupId   string `json:"category_group_id"`
 	Name              string `json:"name"`
 	Hidden            bool   `json:"hidden"`
 	Deleted           bool   `json:"deleted"`
@@ -95,6 +99,39 @@ type Transactions struct {
 	} `json:"data"`
 }
 
+func createTables(db *sql.DB) {
+	tables := []string{
+		`CREATE TABLE IF NOT EXISTS server_knowledge (
+      "endpoint" TEXT NOT NULL PRIMARY KEY,
+      "value"    INTEGER
+    );`,
+		`CREATE TABLE IF NOT EXISTS category_group (
+      id      TEXT NOT NULL PRIMARY KEY,
+      name    TEXT NOT NULL,
+      hidden  INTEGER,
+      deleted INTEGER
+    );`,
+		`CREATE TABLE IF NOT EXISTS category (
+      id                  TEXT NOT NULL PRIMARY KEY,
+      category_group_id   TEXT NOT NULL,
+      name                TEXT NOT NULL,
+      hidden              INTEGER,
+      deleted             INTEGER,
+      goal_type           TEXT,
+      goal_creation_month TEXT,
+      goal_target         TEXT,
+      goal_target_month   TEXT
+    );`,
+	}
+	for _, sql := range tables {
+		statement, err := db.Prepare(sql)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		statement.Exec()
+	}
+}
+
 func request(url string, apiKey string) *[]byte {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
@@ -146,15 +183,66 @@ func loadAccounts(budgetId string, apiKey string) Accounts {
 	return accounts
 }
 
+func updateCategories(categories Categories, db *sql.DB) {
+	insertCategoryGroupSql := `
+    INSERT INTO category_group (
+      id, name, hidden, deleted
+    ) VALUES(?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name=excluded.name, hidden=excluded.hidden, deleted=excluded.hidden;
+  `
+	insertCategorySql := `
+    INSERT INTO category (
+      id, category_group_id, name, hidden, deleted, goal_type,
+      goal_creation_month, goal_target, goal_target_month
+    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name=excluded.name, category_group_id=excluded.category_group_id,
+      hidden=excluded.name, deleted=excluded.deleted,
+      goal_type=excluded.goal_type,
+      goal_creation_month=excluded.goal_creation_month,
+      goal_target=excluded.goal_target,
+      goal_target_month=excluded.goal_target_month;
+  `
+	for _, group := range categories.Data.CategoryGroups {
+		statement, err := db.Prepare(insertCategoryGroupSql)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		_, err = statement.Exec(group.Id, group.Name, group.Hidden, group.Deleted)
+
+		for _, category := range group.Categories {
+			statement, err := db.Prepare(insertCategorySql)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			_, err = statement.Exec(category.Id, category.CategoryGroupId, category.Name, category.Hidden, category.Deleted, category.GoalType, category.GoalCreationMonth, category.GoalTarget, category.GoalTargetMonth)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}
+	}
+}
+
 func main() {
 	budgetId := "last-used"
 	apiKey, ok := os.LookupEnv("YNAB_API_KEY")
 	if !ok {
-		fmt.Println("YNAB_API_KEY not set")
-		os.Exit(1)
+		log.Fatal("YNAB_API_KEY not set")
 	}
 
+	db, err := sql.Open("sqlite3", "database.db")
+	if err != nil {
+		log.Fatal("Database connection failed")
+	}
+	defer db.Close()
+
+	createTables(db)
+
 	categories := loadCategories(budgetId, apiKey)
+	updateCategories(categories, db)
+
+	os.Exit(0)
 	months := loadMonths(budgetId, apiKey)
 	accounts := loadAccounts(budgetId, apiKey)
 
