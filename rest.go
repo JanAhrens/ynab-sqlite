@@ -119,7 +119,7 @@ type Transactions struct {
 				PayeeName             string `json:"payee_name"`
 				CategoryId            string `json:"category_id"`
 				CategoryName          string `json:"category_name"`
-				TransferAccountId  string `json:"transfer_account_id"`
+				TransferAccountId     string `json:"transfer_account_id"`
 				TransferTransactionId string `json:"transfer_transaction_id"`
 				Deleted               bool   `json:"deleted"`
 			} `json:"subtransactions"`
@@ -138,9 +138,10 @@ func request(url string, apiKey string) *[]byte {
 	return &bytes
 }
 
-func loadCategories(budgetId string, apiKey string) Categories {
+func loadCategories(budgetId string, apiKey string, serverKnowledge int) Categories {
+	url := fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories?server_knowledge=%d", budgetId, serverKnowledge)
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories", budgetId),
+		url,
 		apiKey)
 
 	var categories Categories
@@ -169,9 +170,9 @@ func loadCategoryMonths(budgetId string, apiKey, monthId string, categoryId stri
 	return categoryMonth
 }
 
-func loadAccounts(budgetId string, apiKey string) Accounts {
+func loadAccounts(budgetId string, apiKey string, serverKnowledge int) Accounts {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts", budgetId),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts?server_knowledge=%d", budgetId, serverKnowledge),
 		apiKey)
 
 	var accounts Accounts
@@ -179,9 +180,9 @@ func loadAccounts(budgetId string, apiKey string) Accounts {
 	return accounts
 }
 
-func loadTransactions(budgetId string, apiKey string) Transactions {
+func loadTransactions(budgetId string, apiKey string, serverKnowledge int) Transactions {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions", budgetId),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?server_knowledge=%d", budgetId, serverKnowledge),
 		apiKey)
 
 	var transactions Transactions

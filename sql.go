@@ -72,6 +72,21 @@ var tables = []string{
 		transfer_transaction_id TEXT,
 		deleted                 INTEGER
 	);`,
+
+	`CREATE TABLE IF NOT EXISTS account (
+		id                     TEXT NOT NULL PRIMARY KEY,
+		name                   TEXT,
+		type                   TEXT,
+		on_budget              INTEGER,
+		closed                 INTEGER,
+		note                   TEXT,
+		cleared_balance        INTEGER,
+		uncleared_balane       INTEGER,
+		transfer_payee_id      TEXT,
+		direct_import_linked   INTEGER,
+		direct_import_in_error INTEGER,
+		deleted                INTEGER
+	);`,
 }
 
 func createTables(db *sql.DB) {
@@ -82,6 +97,30 @@ func createTables(db *sql.DB) {
 		}
 		statement.Exec()
 	}
+}
+
+func loadServerKnowledge(db *sql.DB) map[string]int {
+	var serverKnowledge = make(map[string]int)
+	res, err := db.Query("SELECT endpoint, value FROM server_knowledge")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer res.Close()
+	var (
+		endpoint string
+		value    int
+	)
+	for res.Next() {
+		err := res.Scan(&endpoint, &value)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		serverKnowledge[endpoint] = value
+	}
+	if err := res.Err(); err != nil {
+		log.Fatal(err.Error())
+	}
+	return serverKnowledge
 }
 
 func updateServerKnowledge(db *sql.DB, sql string, value int) {
@@ -204,4 +243,52 @@ func updateTransactions(transactions Transactions, db *sql.DB) {
 	}
 
 	updateServerKnowledge(db, serverKnowledgeSql, transactions.Data.ServerKnowledge)
+}
+
+func updateAccounts(accounts Accounts, db *sql.DB) {
+	serverKnowledgeSql := `INSERT INTO server_knowledge(endpoint, value) VALUES('accounts', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
+	insertAccountSql := `
+		INSERT INTO account (
+			id, name, type, on_budget, closed, note, cleared_balance,
+			uncleared_balane, transfer_payee_id, direct_import_linked,
+			direct_import_in_error, deleted
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			name=excluded.name,
+			type=excluded.type,
+			on_budget=excluded.on_budget,
+			closed=excluded.closed,
+			note=excluded.note,
+			cleared_balance=excluded.cleared_balance,
+			uncleared_balane=excluded.uncleared_balane,
+			transfer_payee_id=excluded.transfer_payee_id,
+			direct_import_linked=excluded.direct_import_linked,
+			direct_import_in_error=excluded.direct_import_in_error,
+			deleted=excluded.deleted;
+	`
+
+	for _, account := range accounts.Data.Accounts {
+		statement, err := db.Prepare(insertAccountSql)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		_, err = statement.Exec(
+			account.Id,
+			account.Name,
+			account.Type,
+			account.OnBudget,
+			account.Closed,
+			account.Note,
+			account.ClearedBalance,
+			account.UnclearedBalance,
+			account.TransferPayeeId,
+			account.DirectImportLinked,
+			account.DirectImportInError,
+			account.Deleted)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
+
+	updateServerKnowledge(db, serverKnowledgeSql, accounts.Data.ServerKnowledge)
 }

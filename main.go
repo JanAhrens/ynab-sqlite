@@ -24,15 +24,19 @@ func main() {
 
 	createTables(db)
 
-	categories := loadCategories(budgetId, apiKey)
+	serverKnowledge := loadServerKnowledge(db)
+
+	categories := loadCategories(budgetId, apiKey, serverKnowledge["categories"])
 	updateCategories(categories, db)
 
-	transactions := loadTransactions(budgetId, apiKey)
+	transactions := loadTransactions(budgetId, apiKey, serverKnowledge["transactions"])
 	updateTransactions(transactions, db)
+
+	accounts := loadAccounts(budgetId, apiKey, serverKnowledge["accounts"])
+	updateAccounts(accounts, db)
 
 	os.Exit(0)
 	months := loadMonths(budgetId, apiKey)
-	loadAccounts(budgetId, apiKey)
 
 	for _, month := range months.Data.Months {
 		categoryMonth := loadCategoryMonths(budgetId, apiKey, month.Month, categories.Data.CategoryGroups[0].Categories[0].Id)
