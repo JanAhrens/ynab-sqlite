@@ -50,20 +50,22 @@ type Categories struct {
 	} `json:"data"`
 }
 
+type month struct {
+	Month        string `json:"month"`
+	Note         string `json:"note"`
+	Income       int    `json:"income"`
+	Budgeted     int    `json:"budgeted"`
+	Activity     int    `json:"activity"`
+	ToBeBudgeted int    `json:"to_be_budgeted"`
+	AgeOfMoney   int    `json:"age_of_money"`
+	Deleted      bool   `json:"deleted"`
+}
+
 // GET /v1/budgets/:id/months
 type Months struct {
 	Data struct {
-		Months []struct {
-			Month        string `json:"month"`
-			Note         string `json:"note"`
-			Income       int    `json:"income"`
-			Budgeted     int    `json:"budgeted"`
-			Activity     int    `json:"activity"`
-			ToBeBudgeted int    `json:"to_be_budgeted"`
-			AgeOfMoney   int    `json:"age_of_money"`
-			Deleted      bool   `json:"deleted"`
-		} `json:"months"`
-		ServerKnowledge int `json:"server_knowledge"`
+		Months          []month `json:"months"`
+		ServerKnowledge int     `json:"server_knowledge"`
 	} `json:"data"`
 }
 

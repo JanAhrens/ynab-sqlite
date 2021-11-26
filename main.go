@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
@@ -35,11 +34,15 @@ func main() {
 	accounts := loadAccounts(budgetId, apiKey, serverKnowledge["accounts"])
 	updateAccounts(accounts, db)
 
-	os.Exit(0)
 	months := loadMonths(budgetId, apiKey)
 
 	for _, month := range months.Data.Months {
-		categoryMonth := loadCategoryMonths(budgetId, apiKey, month.Month, categories.Data.CategoryGroups[0].Categories[0].Id)
-		fmt.Printf("%s %d\n", month.Month, categoryMonth.Data.Category.Budgeted)
+		updateMonth(month, db)
+		for _, categoryGroup := range categories.Data.CategoryGroups {
+			for _, category := range categoryGroup.Categories {
+				categoryMonth := loadCategoryMonths(budgetId, apiKey, month.Month, category.Id)
+				updateCategoryMonth(month.Month, categoryMonth, db)
+			}
+		}
 	}
 }

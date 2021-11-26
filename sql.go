@@ -38,6 +38,27 @@ var tables = []string{
 		goal_target_month   TEXT
 	);`,
 
+	`CREATE TABLE IF NOT EXISTS month (
+		id             TEXT PRIMARY KEY NOT NULL,
+		note           TEXT,
+		income         INTEGER,
+		budgeted       INTEGER,
+		activity       INTEGER,
+		to_be_budgeted INTEGER,
+		age_of_money   INTEGER,
+		deleted        INTEGER
+	);`,
+
+	`CREATE TABLE IF NOT EXISTS category_month (
+		month_id    TEXT,
+		category_id TEXT,
+		note        TEXT,
+		budgeted    INTEGER,
+		activity    INTEGER,
+		balance     INTEGER,
+		PRIMARY KEY (month_id, category_id)
+	);`,
+
 	`CREATE TABLE IF NOT EXISTS "transaction" (
 		id                      TEXT NOT NULL PRIMARY KEY,
 		date                    TEXT,
@@ -291,4 +312,65 @@ func updateAccounts(accounts Accounts, db *sql.DB) {
 	}
 
 	updateServerKnowledge(db, serverKnowledgeSql, accounts.Data.ServerKnowledge)
+}
+
+func updateCategoryMonth(monthId string, categoryMonth CategoryMonth, db *sql.DB) {
+	insertCategortMonthSql := `
+		INSERT INTO category_month (
+			month_id, category_id, note, budgeted, activity, balance
+		) VALUES(?, ?, ?, ?, ?, ?)
+		ON CONFLICT(month_id, category_id) DO UPDATE SET
+			note=excluded.note,
+			budgeted=excluded.budgeted,
+			activity=excluded.activity,
+			balance=excluded.balance;
+	`
+	statement, err := db.Prepare(insertCategortMonthSql)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	category := categoryMonth.Data.Category
+	_, err = statement.Exec(
+		monthId,
+		category.Id,
+		category.Note,
+		category.Budgeted,
+		category.Activity,
+		category.Balance,
+	)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func updateMonth(month month, db *sql.DB) {
+	insertMonthSql := `
+		INSERT INTO month (
+			id, note, income, budgeted, activity, to_be_budgeted, age_of_money, deleted
+		) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			note=excluded.note,
+			income=excluded.income,
+			budgeted=excluded.budgeted,
+			activity=excluded.activity,
+			to_be_budgeted=excluded.to_be_budgeted,
+			age_of_money=excluded.age_of_money,
+			deleted=excluded.deleted
+	;`
+	statement, err := db.Prepare(insertMonthSql)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	_, err = statement.Exec(
+		month.Month,
+		month.Note,
+		month.Income,
+		month.Budgeted,
+		month.Activity,
+		month.ToBeBudgeted,
+		month.AgeOfMoney,
+		month.Deleted)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
