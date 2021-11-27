@@ -130,6 +130,18 @@ type Transactions struct {
 	} `json:"data"`
 }
 
+type Payees struct {
+	Data struct {
+		Payees []struct {
+			Id                string `json:"id"`
+			Name              string `json:"name"`
+			TransferAccountId string `json:"transfer_account_id"`
+			Deleted           bool   `json:"deleted"`
+		} `json:"payees"`
+		ServerKnowledge int `json:"server_knowledge"`
+	} `json:"data"`
+}
+
 func request(url string, apiKey string) *[]byte {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
@@ -141,7 +153,7 @@ func request(url string, apiKey string) *[]byte {
 }
 
 func loadCategories(budgetId string, apiKey string, serverKnowledge int) Categories {
-	url := fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories?server_knowledge=%d", budgetId, serverKnowledge)
+	url := fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories?last_knowledge_of_server=%d", budgetId, serverKnowledge)
 	bytes := request(
 		url,
 		apiKey)
@@ -151,9 +163,9 @@ func loadCategories(budgetId string, apiKey string, serverKnowledge int) Categor
 	return categories
 }
 
-func loadMonths(budgetId string, apiKey string) Months {
+func loadMonths(budgetId string, apiKey string, serverKnowledge int) Months {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/months", budgetId),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/months?last_knowledge_of_server=%d", budgetId, serverKnowledge),
 		apiKey)
 
 	var months Months
@@ -190,4 +202,14 @@ func loadTransactions(budgetId string, apiKey string, serverKnowledge int) Trans
 	var transactions Transactions
 	json.Unmarshal(*bytes, &transactions)
 	return transactions
+}
+
+func loadPayees(budgetId string, apiKey string, serverKnowledge int) Payees {
+	bytes := request(
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/payees?last_knowledge_of_server=%d", budgetId, serverKnowledge),
+		apiKey)
+
+	var payees Payees
+	json.Unmarshal(*bytes, &payees)
+	return payees
 }

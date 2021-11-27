@@ -15,7 +15,9 @@ var tables = []string{
 	`INSERT INTO server_knowledge(endpoint,value) VALUES
 		('categories',   0),
 		('accounts',     0),
-		('transactions', 0)
+		('transactions', 0),
+		('payees',       0),
+		('months',       0)
 		ON CONFLICT(endpoint) DO NOTHING;
 	`,
 
@@ -107,6 +109,13 @@ var tables = []string{
 		direct_import_linked   INTEGER,
 		direct_import_in_error INTEGER,
 		deleted                INTEGER
+	);`,
+
+	`CREATE TABLE IF NOT EXISTS payee (
+		id 					TEXT NOT NULL PRIMARY KEY,
+		name 				TEXT NOT NULL,
+		transfer_account_id INTEGER,
+		deleted				INTEGER
 	);`,
 }
 
@@ -343,6 +352,17 @@ func updateCategoryMonth(monthId string, categoryMonth CategoryMonth, db *sql.DB
 	}
 }
 
+func updateMonthServerKnowledge(months Months, db *sql.DB) {
+	serverKnowledgeSql := `INSERT INTO server_knowledge (
+		endpoint, value
+	) VALUES('months', ?)
+	ON CONFLICT(endpoint) DO UPDATE SET
+		value=excluded.value
+	;`
+
+	updateServerKnowledge(db, serverKnowledgeSql, months.Data.ServerKnowledge)
+}
+
 func updateMonth(month month, db *sql.DB) {
 	insertMonthSql := `
 		INSERT INTO month (
@@ -373,4 +393,35 @@ func updateMonth(month month, db *sql.DB) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+}
+
+func updatePayees(payees Payees, db *sql.DB) {
+	serverKnowledgeSql := `INSERT INTO server_knowledge (
+		endpoint, value
+	) VALUES('payees', ?)
+	ON CONFLICT(endpoint) DO UPDATE SET
+		value=excluded.value
+	;`
+
+	insertPayeeSql := `INSERT INTO payee (
+		id, name, transfer_account_id, deleted
+	) VALUES(?, ?, ?, ?)
+	ON CONFLICT(id) DO UPDATE SET
+		name=excluded.name,
+		transfer_account_id=excluded.transfer_account_id,
+		deleted=excluded.deleted
+	;`
+
+	for _, payee := range payees.Data.Payees {
+		statement, err := db.Prepare(insertPayeeSql)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		_, err = statement.Exec(payee.Id, payee.Name, payee.TransferAccountId, payee.Deleted)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
+
+	updateServerKnowledge(db, serverKnowledgeSql, payees.Data.ServerKnowledge)
 }

@@ -34,7 +34,8 @@ func main() {
 	accounts := loadAccounts(budgetId, apiKey, serverKnowledge["accounts"])
 	updateAccounts(accounts, db)
 
-	months := loadMonths(budgetId, apiKey)
+	months := loadMonths(budgetId, apiKey, serverKnowledge["months"])
+	updateMonthServerKnowledge(months, db)
 
 	for _, month := range months.Data.Months {
 		updateMonth(month, db)
@@ -45,4 +46,7 @@ func main() {
 			}
 		}
 	}
+
+	payees := loadPayees(budgetId, apiKey, serverKnowledge["payees"])
+	updatePayees(payees, db)
 }
