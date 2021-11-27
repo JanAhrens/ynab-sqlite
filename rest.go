@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -146,8 +147,21 @@ func request(url string, apiKey string) *[]byte {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-	res, _ := client.Do(req)
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	defer res.Body.Close()
+
+	// https://api.youneedabudget.com/#rate-limiting
+	// every access token can generate 200 requests per hour
+	log.Printf("%s %v %s\n", url, res.Status, res.Header.Get("X-Rate-Limit"))
+
+	// check if response outside of 2xx or 3xx code
+	if !(res.StatusCode >= 200 && res.StatusCode <= 399) {
+		log.Fatal(fmt.Sprintf("%d", res.StatusCode))
+	}
+
 	bytes, _ := ioutil.ReadAll(res.Body)
 	return &bytes
 }
