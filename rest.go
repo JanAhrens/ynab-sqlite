@@ -201,7 +201,7 @@ func loadCategoryMonths(budgetID string, apiKey, monthID string, categoryID stri
 
 func loadAccounts(budgetID string, apiKey string, serverKnowledge int) Accounts {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts?server_knowledge=%d", budgetID, serverKnowledge),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts?last_knowledge_of_server=%d", budgetID, serverKnowledge),
 		apiKey)
 
 	var accounts Accounts
@@ -211,7 +211,7 @@ func loadAccounts(budgetID string, apiKey string, serverKnowledge int) Accounts 
 
 func loadTransactions(budgetID string, apiKey string, serverKnowledge int) Transactions {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?server_knowledge=%d", budgetID, serverKnowledge),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?last_knowledge_of_server=%d", budgetID, serverKnowledge),
 		apiKey)
 
 	var transactions Transactions
