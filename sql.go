@@ -130,7 +130,7 @@ func createTables(db *sql.DB) error {
 	return nil
 }
 
-func loadServerKnowledge(tx *sql.Tx, ctx context.Context) (map[string]int, error) {
+func loadServerKnowledge(ctx context.Context, tx *sql.Tx) (map[string]int, error) {
 	var serverKnowledge = make(map[string]int)
 	res, err := tx.QueryContext(ctx, "SELECT endpoint, value FROM server_knowledge")
 	if err != nil {
@@ -153,7 +153,7 @@ func loadServerKnowledge(tx *sql.Tx, ctx context.Context) (map[string]int, error
 	return serverKnowledge, nil
 }
 
-func updateServerKnowledge(tx *sql.Tx, ctx context.Context, sql string, value int) error {
+func updateServerKnowledge(ctx context.Context, tx *sql.Tx, sql string, value int) error {
 	statement, err := tx.Prepare(sql)
 	if err != nil {
 		return err
@@ -164,16 +164,16 @@ func updateServerKnowledge(tx *sql.Tx, ctx context.Context, sql string, value in
 	return nil
 }
 
-func updateCategories(categories Categories, tx *sql.Tx, ctx context.Context) error {
-	serverKnowledgeSql := `INSERT INTO server_knowledge(endpoint, value) VALUES('categories', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
-	insertCategoryGroupSql := `
+func updateCategories(ctx context.Context, categories Categories, tx *sql.Tx) error {
+	serverKnowledgeSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES('categories', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
+	insertCategoryGroupSQL := `
     INSERT INTO category_group (
       id, name, hidden, deleted
     ) VALUES(?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name=excluded.name, hidden=excluded.hidden, deleted=excluded.hidden;
   `
-	insertCategorySql := `
+	insertCategorySQL := `
     INSERT INTO category (
       id, name, note, category_group_id, hidden, deleted, goal_type,
       goal_creation_month, goal_target, goal_target_month
@@ -187,32 +187,32 @@ func updateCategories(categories Categories, tx *sql.Tx, ctx context.Context) er
       goal_target_month=excluded.goal_target_month;
   `
 	for _, group := range categories.Data.CategoryGroups {
-		statement, err := tx.Prepare(insertCategoryGroupSql)
+		statement, err := tx.Prepare(insertCategoryGroupSQL)
 		if err != nil {
 			return err
 		}
-		_, err = statement.ExecContext(ctx, group.Id, group.Name, group.Hidden, group.Deleted)
+		_, err = statement.ExecContext(ctx, group.ID, group.Name, group.Hidden, group.Deleted)
 		if err != nil {
 			return err
 		}
 
 		for _, category := range group.Categories {
-			statement, err := tx.Prepare(insertCategorySql)
+			statement, err := tx.Prepare(insertCategorySQL)
 			if err != nil {
 				return err
 			}
-			_, err = statement.ExecContext(ctx, category.Id, category.Name, category.Note, category.CategoryGroupId, category.Hidden, category.Deleted, category.GoalType, category.GoalCreationMonth, category.GoalTarget, category.GoalTargetMonth)
+			_, err = statement.ExecContext(ctx, category.ID, category.Name, category.Note, category.CategoryGroupID, category.Hidden, category.Deleted, category.GoalType, category.GoalCreationMonth, category.GoalTarget, category.GoalTargetMonth)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	return updateServerKnowledge(tx, ctx, serverKnowledgeSql, categories.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, categories.Data.ServerKnowledge)
 }
 
-func updateTransactions(transactions Transactions, tx *sql.Tx, ctx context.Context) error {
-	insertTransactionSql := `
+func updateTransactions(ctx context.Context, transactions Transactions, tx *sql.Tx) error {
+	insertTransactionSQL := `
     INSERT INTO "transaction" (
 		id, date, amount, memo, cleared, approved,
 		flag_color, account_id, payee_id, category_id,
@@ -231,7 +231,7 @@ func updateTransactions(transactions Transactions, tx *sql.Tx, ctx context.Conte
 		import_id=excluded.import_id, deleted=excluded.deleted,
 		account_name=excluded.account_name, payee_name=excluded.payee_name,
 		category_name=excluded.category_name;`
-	insertSubtransactionSql := `
+	insertSubtransactionSQL := `
     INSERT INTO "subtransaction" (
 		id, transaction_id, amount, memo, payee_id, category_id,
 		category_name, transfer_account_id, transfer_transaction_id,
@@ -243,41 +243,41 @@ func updateTransactions(transactions Transactions, tx *sql.Tx, ctx context.Conte
 		category_name=excluded.category_name, transfer_account_id=excluded.transfer_account_id,
 		transfer_transaction_id=excluded.transfer_transaction_id, deleted=excluded.deleted;
 	`
-	serverKnowledgeSql := `INSERT INTO server_knowledge(endpoint, value) VALUES('transactions', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
+	serverKnowledgeSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES('transactions', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
 
 	for _, t := range transactions.Data.Transactions {
-		statement, err := tx.Prepare(insertTransactionSql)
+		statement, err := tx.Prepare(insertTransactionSQL)
 		if err != nil {
 			return err
 		}
-		_, err = statement.ExecContext(ctx, t.Id, t.Date, t.Amount, t.Memo, t.Cleared, t.Approved,
-			t.FlagColor, t.AccountId, t.PayeeId, t.CategoryId,
-			t.TransferAccountId, t.TransferTransactionId,
-			t.MatchedTransactionId, t.ImportId, t.Deleted,
+		_, err = statement.ExecContext(ctx, t.ID, t.Date, t.Amount, t.Memo, t.Cleared, t.Approved,
+			t.FlagColor, t.AccountID, t.PayeeID, t.CategoryID,
+			t.TransferAccountID, t.TransferTransactionID,
+			t.MatchedTransactionID, t.ImportID, t.Deleted,
 			t.AccountName, t.PayeeName, t.CategoryName)
 		if err != nil {
 			return err
 		}
 		for _, st := range t.Subtransactions {
-			statement, err := tx.Prepare(insertSubtransactionSql)
+			statement, err := tx.Prepare(insertSubtransactionSQL)
 			if err != nil {
 				return nil
 			}
-			_, err = statement.ExecContext(ctx, st.Id, st.TransactionId, st.Amount, st.Memo,
-				st.PayeeId, st.CategoryId, st.CategoryName, st.TransferAccountId,
-				st.TransferTransactionId, st.Deleted)
+			_, err = statement.ExecContext(ctx, st.ID, st.TransactionID, st.Amount, st.Memo,
+				st.PayeeID, st.CategoryID, st.CategoryName, st.TransferAccountID,
+				st.TransferTransactionID, st.Deleted)
 			if err != nil {
 				return nil
 			}
 		}
 	}
 
-	return updateServerKnowledge(tx, ctx, serverKnowledgeSql, transactions.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, transactions.Data.ServerKnowledge)
 }
 
-func updateAccounts(accounts Accounts, tx *sql.Tx, ctx context.Context) error {
-	serverKnowledgeSql := `INSERT INTO server_knowledge(endpoint, value) VALUES('accounts', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
-	insertAccountSql := `
+func updateAccounts(ctx context.Context, accounts Accounts, tx *sql.Tx) error {
+	serverKnowledgeSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES('accounts', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
+	insertAccountSQL := `
 		INSERT INTO account (
 			id, name, type, on_budget, closed, note, cleared_balance,
 			uncleared_balane, transfer_payee_id, direct_import_linked,
@@ -298,12 +298,12 @@ func updateAccounts(accounts Accounts, tx *sql.Tx, ctx context.Context) error {
 	`
 
 	for _, account := range accounts.Data.Accounts {
-		statement, err := tx.Prepare(insertAccountSql)
+		statement, err := tx.Prepare(insertAccountSQL)
 		if err != nil {
 			return err
 		}
 		_, err = statement.ExecContext(ctx,
-			account.Id,
+			account.ID,
 			account.Name,
 			account.Type,
 			account.OnBudget,
@@ -311,7 +311,7 @@ func updateAccounts(accounts Accounts, tx *sql.Tx, ctx context.Context) error {
 			account.Note,
 			account.ClearedBalance,
 			account.UnclearedBalance,
-			account.TransferPayeeId,
+			account.TransferPayeeID,
 			account.DirectImportLinked,
 			account.DirectImportInError,
 			account.Deleted)
@@ -320,11 +320,11 @@ func updateAccounts(accounts Accounts, tx *sql.Tx, ctx context.Context) error {
 		}
 	}
 
-	return updateServerKnowledge(tx, ctx, serverKnowledgeSql, accounts.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, accounts.Data.ServerKnowledge)
 }
 
-func updateCategoryMonth(monthId string, categoryMonth CategoryMonth, tx *sql.Tx, ctx context.Context) error {
-	insertCategortMonthSql := `
+func updateCategoryMonth(ctx context.Context, monthID string, categoryMonth CategoryMonth, tx *sql.Tx) error {
+	insertCategortMonthSQL := `
 		INSERT INTO category_month (
 			month_id, category_id, budgeted, activity, balance
 		) VALUES(?, ?, ?, ?, ?)
@@ -333,14 +333,14 @@ func updateCategoryMonth(monthId string, categoryMonth CategoryMonth, tx *sql.Tx
 			activity=excluded.activity,
 			balance=excluded.balance;
 	`
-	statement, err := tx.Prepare(insertCategortMonthSql)
+	statement, err := tx.Prepare(insertCategortMonthSQL)
 	if err != nil {
 		return err
 	}
 	category := categoryMonth.Data.Category
 	_, err = statement.ExecContext(ctx,
-		monthId,
-		category.Id,
+		monthID,
+		category.ID,
 		category.Budgeted,
 		category.Activity,
 		category.Balance,
@@ -348,19 +348,19 @@ func updateCategoryMonth(monthId string, categoryMonth CategoryMonth, tx *sql.Tx
 	return err
 }
 
-func updateMonthServerKnowledge(months Months, tx *sql.Tx, ctx context.Context) error {
-	serverKnowledgeSql := `INSERT INTO server_knowledge (
+func updateMonthServerKnowledge(ctx context.Context, months Months, tx *sql.Tx) error {
+	serverKnowledgeSQL := `INSERT INTO server_knowledge (
 		endpoint, value
 	) VALUES('months', ?)
 	ON CONFLICT(endpoint) DO UPDATE SET
 		value=excluded.value
 	;`
 
-	return updateServerKnowledge(tx, ctx, serverKnowledgeSql, months.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, months.Data.ServerKnowledge)
 }
 
-func updateMonth(month month, tx *sql.Tx, ctx context.Context) error {
-	insertMonthSql := `
+func updateMonth(ctx context.Context, month month, tx *sql.Tx) error {
+	insertMonthSQL := `
 		INSERT INTO month (
 			id, note, income, budgeted, activity, to_be_budgeted, age_of_money, deleted
 		) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
@@ -373,7 +373,7 @@ func updateMonth(month month, tx *sql.Tx, ctx context.Context) error {
 			age_of_money=excluded.age_of_money,
 			deleted=excluded.deleted
 	;`
-	statement, err := tx.Prepare(insertMonthSql)
+	statement, err := tx.Prepare(insertMonthSQL)
 	if err != nil {
 		return err
 	}
@@ -389,15 +389,15 @@ func updateMonth(month month, tx *sql.Tx, ctx context.Context) error {
 	return err
 }
 
-func updatePayees(payees Payees, tx *sql.Tx, ctx context.Context) error {
-	serverKnowledgeSql := `INSERT INTO server_knowledge (
+func updatePayees(ctx context.Context, payees Payees, tx *sql.Tx) error {
+	serverKnowledgeSQL := `INSERT INTO server_knowledge (
 		endpoint, value
 	) VALUES('payees', ?)
 	ON CONFLICT(endpoint) DO UPDATE SET
 		value=excluded.value
 	;`
 
-	insertPayeeSql := `INSERT INTO payee (
+	insertPayeeSQL := `INSERT INTO payee (
 		id, name, transfer_account_id, deleted
 	) VALUES(?, ?, ?, ?)
 	ON CONFLICT(id) DO UPDATE SET
@@ -407,15 +407,15 @@ func updatePayees(payees Payees, tx *sql.Tx, ctx context.Context) error {
 	;`
 
 	for _, payee := range payees.Data.Payees {
-		statement, err := tx.Prepare(insertPayeeSql)
+		statement, err := tx.Prepare(insertPayeeSQL)
 		if err != nil {
 			return err
 		}
-		_, err = statement.ExecContext(ctx, payee.Id, payee.Name, payee.TransferAccountId, payee.Deleted)
+		_, err = statement.ExecContext(ctx, payee.ID, payee.Name, payee.TransferAccountID, payee.Deleted)
 		if err != nil {
 			return err
 		}
 	}
 
-	return updateServerKnowledge(tx, ctx, serverKnowledgeSql, payees.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, payees.Data.ServerKnowledge)
 }

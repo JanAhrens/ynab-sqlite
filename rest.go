@@ -9,11 +9,11 @@ import (
 )
 
 type category struct {
-	Id                      string `json:"id"`
-	CategoryGroupId         string `json:"category_group_id"`
+	ID                      string `json:"id"`
+	CategoryGroupID         string `json:"category_group_id"`
 	Name                    string `json:"name"`
 	Hidden                  bool   `json:"hidden"`
-	OriginalCategoryGroupId string `json:"original_category_group_id"`
+	OriginalCategoryGroupID string `json:"original_category_group_id"`
 	Note                    string `json:"note"`
 	Budgeted                int    `json:"budgeted"`
 	Activity                int    `json:"activity"`
@@ -30,18 +30,18 @@ type category struct {
 	Deleted                 bool   `json:"deleted"`
 }
 
-// GET /v1/budgets/:id/months/:month_id/categories/:category_id
+// CategoryMonth GET /v1/budgets/:id/months/:month_id/categories/:category_id
 type CategoryMonth struct {
 	Data struct {
 		Category category
 	}
 }
 
-// GET /v1/budgets/:id/categories
+// Categories GET /v1/budgets/:id/categories
 type Categories struct {
 	Data struct {
 		CategoryGroups []struct {
-			Id         string     `json:"id"`
+			ID         string     `json:"id"`
 			Name       string     `json:"name"`
 			Hidden     bool       `json:"hidden"`
 			Deleted    bool       `json:"deleted"`
@@ -62,7 +62,7 @@ type month struct {
 	Deleted      bool   `json:"deleted"`
 }
 
-// GET /v1/budgets/:id/months
+// Months GET /v1/budgets/:id/months
 type Months struct {
 	Data struct {
 		Months          []month `json:"months"`
@@ -70,11 +70,11 @@ type Months struct {
 	} `json:"data"`
 }
 
-// GET /v1/budgets/:id/accounts
+// Accounts GET /v1/budgets/:id/accounts
 type Accounts struct {
 	Data struct {
 		Accounts []struct {
-			Id                  string `json:"id"`
+			ID                  string `json:"id"`
 			Name                string `json:"name"`
 			Type                string `json:"type"`
 			OnBudget            bool   `json:"on_budget"`
@@ -82,7 +82,7 @@ type Accounts struct {
 			Note                string `json:"note"`
 			ClearedBalance      int    `json:"cleared_balance"`
 			UnclearedBalance    int    `json:"uncleared_balane"`
-			TransferPayeeId     string `json:"transfer_payee_id"`
+			TransferPayeeID     string `json:"transfer_payee_id"`
 			DirectImportLinked  bool   `json:"direct_import_linked"`
 			DirectImportInError bool   `json:"direct_import_in_error"`
 			Deleted             bool   `json:"deleted"`
@@ -91,39 +91,39 @@ type Accounts struct {
 	} `json:"data"`
 }
 
-// GET /v1/budgets/:id/transactions
+// Transactions GET /v1/budgets/:id/transactions
 type Transactions struct {
 	Data struct {
 		Transactions []struct {
-			Id                    string `json:"id"`
+			ID                    string `json:"id"`
 			Date                  string `json:"date"`
 			Amount                int    `json:"amount"`
 			Memo                  string `json:"memo"`
 			Cleared               string `json:"cleared"`
 			Approved              bool   `json:"approved"`
 			FlagColor             string `json:"flag_color"`
-			AccountId             string `json:"account_id"`
-			PayeeId               string `json:"payee_id"`
-			CategoryId            string `json:"category_id"`
-			TransferAccountId     string `json:"transfer_account_id"`
-			TransferTransactionId string `json:"transfer_transaction_id"`
-			MatchedTransactionId  string `json:"matched_transaction_id"`
-			ImportId              string `json:"import_id"`
+			AccountID             string `json:"account_id"`
+			PayeeID               string `json:"payee_id"`
+			CategoryID            string `json:"category_id"`
+			TransferAccountID     string `json:"transfer_account_id"`
+			TransferTransactionID string `json:"transfer_transaction_id"`
+			MatchedTransactionID  string `json:"matched_transaction_id"`
+			ImportID              string `json:"import_id"`
 			Deleted               bool   `json:"deleted"`
 			AccountName           string `json:"account_name"`
 			PayeeName             string `json:"payee_name"`
 			CategoryName          string `json:"category_name"`
 			Subtransactions       []struct {
-				Id                    string `json:"id"`
-				TransactionId         string `json:"transaction_id"`
+				ID                    string `json:"id"`
+				TransactionID         string `json:"transaction_id"`
 				Amount                int    `json:"amount"`
 				Memo                  string `json:"memo"`
-				PayeeId               string `json:"payee_id"`
+				PayeeID               string `json:"payee_id"`
 				PayeeName             string `json:"payee_name"`
-				CategoryId            string `json:"category_id"`
+				CategoryID            string `json:"category_id"`
 				CategoryName          string `json:"category_name"`
-				TransferAccountId     string `json:"transfer_account_id"`
-				TransferTransactionId string `json:"transfer_transaction_id"`
+				TransferAccountID     string `json:"transfer_account_id"`
+				TransferTransactionID string `json:"transfer_transaction_id"`
 				Deleted               bool   `json:"deleted"`
 			} `json:"subtransactions"`
 		} `json:"transactions"`
@@ -131,12 +131,13 @@ type Transactions struct {
 	} `json:"data"`
 }
 
+// Payees GET /v1/budgets/:budget_id/payees
 type Payees struct {
 	Data struct {
 		Payees []struct {
-			Id                string `json:"id"`
+			ID                string `json:"id"`
 			Name              string `json:"name"`
-			TransferAccountId string `json:"transfer_account_id"`
+			TransferAccountID string `json:"transfer_account_id"`
 			Deleted           bool   `json:"deleted"`
 		} `json:"payees"`
 		ServerKnowledge int `json:"server_knowledge"`
@@ -166,8 +167,8 @@ func request(url string, apiKey string) *[]byte {
 	return &bytes
 }
 
-func loadCategories(budgetId string, apiKey string, serverKnowledge int) Categories {
-	url := fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories?last_knowledge_of_server=%d", budgetId, serverKnowledge)
+func loadCategories(budgetID string, apiKey string, serverKnowledge int) Categories {
+	url := fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories?last_knowledge_of_server=%d", budgetID, serverKnowledge)
 	bytes := request(
 		url,
 		apiKey)
@@ -177,9 +178,9 @@ func loadCategories(budgetId string, apiKey string, serverKnowledge int) Categor
 	return categories
 }
 
-func loadMonths(budgetId string, apiKey string, serverKnowledge int) Months {
+func loadMonths(budgetID string, apiKey string, serverKnowledge int) Months {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/months?last_knowledge_of_server=%d", budgetId, serverKnowledge),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/months?last_knowledge_of_server=%d", budgetID, serverKnowledge),
 		apiKey)
 
 	var months Months
@@ -187,10 +188,10 @@ func loadMonths(budgetId string, apiKey string, serverKnowledge int) Months {
 	return months
 }
 
-func loadCategoryMonths(budgetId string, apiKey, monthId string, categoryId string) CategoryMonth {
+func loadCategoryMonths(budgetID string, apiKey, monthID string, categoryID string) CategoryMonth {
 	url := "https://api.youneedabudget.com/v1/budgets/%s/months/%s/categories/%s"
 	bytes := request(
-		fmt.Sprintf(url, budgetId, monthId, categoryId),
+		fmt.Sprintf(url, budgetID, monthID, categoryID),
 		apiKey)
 
 	var categoryMonth CategoryMonth
@@ -198,9 +199,9 @@ func loadCategoryMonths(budgetId string, apiKey, monthId string, categoryId stri
 	return categoryMonth
 }
 
-func loadAccounts(budgetId string, apiKey string, serverKnowledge int) Accounts {
+func loadAccounts(budgetID string, apiKey string, serverKnowledge int) Accounts {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts?server_knowledge=%d", budgetId, serverKnowledge),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts?server_knowledge=%d", budgetID, serverKnowledge),
 		apiKey)
 
 	var accounts Accounts
@@ -208,9 +209,9 @@ func loadAccounts(budgetId string, apiKey string, serverKnowledge int) Accounts 
 	return accounts
 }
 
-func loadTransactions(budgetId string, apiKey string, serverKnowledge int) Transactions {
+func loadTransactions(budgetID string, apiKey string, serverKnowledge int) Transactions {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?server_knowledge=%d", budgetId, serverKnowledge),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?server_knowledge=%d", budgetID, serverKnowledge),
 		apiKey)
 
 	var transactions Transactions
@@ -218,9 +219,9 @@ func loadTransactions(budgetId string, apiKey string, serverKnowledge int) Trans
 	return transactions
 }
 
-func loadPayees(budgetId string, apiKey string, serverKnowledge int) Payees {
+func loadPayees(budgetID string, apiKey string, serverKnowledge int) Payees {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/payees?last_knowledge_of_server=%d", budgetId, serverKnowledge),
+		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/payees?last_knowledge_of_server=%d", budgetID, serverKnowledge),
 		apiKey)
 
 	var payees Payees
