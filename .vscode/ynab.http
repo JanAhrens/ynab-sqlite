@@ -1,0 +1,25 @@
+@baseURL = https://api.youneedabudget.com/v1/budgets/last-used
+
+###
+# @name categories
+GET {{baseURL}}/categories HTTP/1.1
+Authorization: Bearer {{YNAB_API_KEY}}
+
+###
+# @name month
+GET {{baseURL}}/months HTTP/1.1
+Authorization: Bearer {{YNAB_API_KEY}}
+
+### 
+@categoryId = {{categories.response.body.$.data.category_groups[?(@.name=="Immediate Obligations")].categories[0].id}}
+@monthId = {{month.response.body.$.data.months[0].month}}
+
+GET {{baseURL}}/months/{{monthId}}/categories/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{YNAB_API_KEY}}
+
+###
+
+@monthServerKnowledge=98
+
+GET {{baseURL}}/months?last_knowledge_of_server={{monthServerKnowledge}} HTTP/1.1
+Authorization: Bearer {{YNAB_API_KEY}}
