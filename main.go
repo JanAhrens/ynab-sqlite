@@ -11,29 +11,30 @@ import (
 )
 
 func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID string) error {
+	prefix := "https://api.youneedabudget.com/v1"
 	serverKnowledge, err := loadServerKnowledge(ctx, tx)
 	if err != nil {
 		return fmt.Errorf("failed to load server knowledge from databse: %s", err)
 	}
 
-	categories := loadCategories(budgetID, apiKey, serverKnowledge["categories"])
+	categories := loadCategories(prefix, budgetID, apiKey, serverKnowledge["categories"])
 	if err = updateCategories(ctx, categories, tx); err != nil {
 		return fmt.Errorf("couldn't update categories: %s", err)
+	}
+
+	months := loadMonths(prefix, budgetID, apiKey, serverKnowledge["months"])
+	if err = updateMonthServerKnowledge(ctx, months, tx); err != nil {
+		return fmt.Errorf("could not update month server knowledge: %s", err)
+	}
+
+	accounts := loadAccounts(prefix, budgetID, apiKey, serverKnowledge["accounts"])
+	if err = updateAccounts(ctx, accounts, tx); err != nil {
+		return fmt.Errorf("could not update accounts: %s", err)
 	}
 
 	transactions := loadTransactions(budgetID, apiKey, serverKnowledge["transactions"])
 	if err = updateTransactions(ctx, transactions, tx); err != nil {
 		return fmt.Errorf("could not update transactions: %s", err)
-	}
-
-	accounts := loadAccounts(budgetID, apiKey, serverKnowledge["accounts"])
-	if err = updateAccounts(ctx, accounts, tx); err != nil {
-		return fmt.Errorf("could not update accounts: %s", err)
-	}
-
-	months := loadMonths(budgetID, apiKey, serverKnowledge["months"])
-	if err = updateMonthServerKnowledge(ctx, months, tx); err != nil {
-		return fmt.Errorf("could not update month server knowledge: %s", err)
 	}
 
 	for _, month := range months.Data.Months {
@@ -42,9 +43,9 @@ func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID st
 		}
 		for _, categoryGroup := range categories.Data.CategoryGroups {
 			for _, category := range categoryGroup.Categories {
-				categoryMonth := loadCategoryMonths(budgetID, apiKey, month.Month, category.ID)
+				categoryMonth := loadCategoryMonths(prefix, budgetID, apiKey, month.Month, category.ID)
 				if err = updateCategoryMonth(ctx, month.Month, categoryMonth, tx); err != nil {
-					return fmt.Errorf("could not update category month", err)
+					return fmt.Errorf("could not update category month %s", err)
 				}
 			}
 		}

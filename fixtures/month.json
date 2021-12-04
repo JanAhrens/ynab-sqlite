@@ -1,0 +1,27 @@
+{
+    "data": {
+        "months": [
+            {
+                "month": "2021-11-01",
+                "note": null,
+                "income": 120000,
+                "budgeted": 123000,
+                "activity": -25000,
+                "to_be_budgeted": -3000,
+                "age_of_money": null,
+                "deleted": false
+            },
+            {
+                "month": "2021-12-01",
+                "note": null,
+                "income": 0,
+                "budgeted": 0,
+                "activity": 0,
+                "to_be_budgeted": -3000,
+                "age_of_money": null,
+                "deleted": false
+            }
+        ],
+        "server_knowledge": 98
+    }
+}

@@ -9,25 +9,25 @@ import (
 )
 
 type category struct {
-	ID                      string `json:"id"`
-	CategoryGroupID         string `json:"category_group_id"`
-	Name                    string `json:"name"`
-	Hidden                  bool   `json:"hidden"`
-	OriginalCategoryGroupID string `json:"original_category_group_id"`
-	Note                    string `json:"note"`
-	Budgeted                int    `json:"budgeted"`
-	Activity                int    `json:"activity"`
-	Balance                 int    `json:"balance"`
-	GoalType                string `json:"goal_type"`
-	GoalCreationMonth       string `json:"goal_creation_month"`
-	GoalTarget              int    `json:"goal_target"`
-	GoalTargetMonth         string `json:"goal_target_month"`
-	GoalPercentageComplete  int    `json:"goal_percentage_complete"`
-	GoalMonthsToBudget      int    `json:"goal_months_to_budget"`
-	GoalUnderFunded         int    `json:"goal_under_funded"`
-	GoalOverallFunded       int    `json:"goal_overall_funded"`
-	GoalOverallLeft         int    `json:"goal_overall_left"`
-	Deleted                 bool   `json:"deleted"`
+	ID                      string  `json:"id"`
+	CategoryGroupID         string  `json:"category_group_id"`
+	Name                    string  `json:"name"`
+	Hidden                  bool    `json:"hidden"`
+	OriginalCategoryGroupID *string `json:"original_category_group_id"`
+	Note                    *string `json:"note"`
+	Budgeted                int     `json:"budgeted"`
+	Activity                int     `json:"activity"`
+	Balance                 int     `json:"balance"`
+	GoalType                *string `json:"goal_type"`
+	GoalCreationMonth       *string `json:"goal_creation_month"`
+	GoalTarget              int     `json:"goal_target"`
+	GoalTargetMonth         *string `json:"goal_target_month"`
+	GoalPercentageComplete  *int    `json:"goal_percentage_complete"`
+	GoalMonthsToBudget      *int    `json:"goal_months_to_budget"`
+	GoalUnderFunded         *int    `json:"goal_under_funded"`
+	GoalOverallFunded       *int    `json:"goal_overall_funded"`
+	GoalOverallLeft         *int    `json:"goal_overall_left"`
+	Deleted                 bool    `json:"deleted"`
 }
 
 // CategoryMonth GET /v1/budgets/:id/months/:month_id/categories/:category_id
@@ -74,18 +74,19 @@ type Months struct {
 type Accounts struct {
 	Data struct {
 		Accounts []struct {
-			ID                  string `json:"id"`
-			Name                string `json:"name"`
-			Type                string `json:"type"`
-			OnBudget            bool   `json:"on_budget"`
-			Closed              bool   `json:"closed"`
-			Note                string `json:"note"`
-			ClearedBalance      int    `json:"cleared_balance"`
-			UnclearedBalance    int    `json:"uncleared_balane"`
-			TransferPayeeID     string `json:"transfer_payee_id"`
-			DirectImportLinked  bool   `json:"direct_import_linked"`
-			DirectImportInError bool   `json:"direct_import_in_error"`
-			Deleted             bool   `json:"deleted"`
+			ID                  string  `json:"id"`
+			Name                string  `json:"name"`
+			Type                string  `json:"type"`
+			OnBudget            bool    `json:"on_budget"`
+			Closed              bool    `json:"closed"`
+			Note                *string `json:"note"`
+			Balance             int     `json:"balance"`
+			ClearedBalance      int     `json:"cleared_balance"`
+			UnclearedBalance    int     `json:"uncleared_balance"`
+			TransferPayeeID     string  `json:"transfer_payee_id"`
+			DirectImportLinked  bool    `json:"direct_import_linked"`
+			DirectImportInError bool    `json:"direct_import_in_error"`
+			Deleted             bool    `json:"deleted"`
 		} `json:"accounts"`
 		ServerKnowledge int `json:"server_knowledge"`
 	} `json:"data"`
@@ -167,8 +168,8 @@ func request(url string, apiKey string) *[]byte {
 	return &bytes
 }
 
-func loadCategories(budgetID string, apiKey string, serverKnowledge int) Categories {
-	url := fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/categories?last_knowledge_of_server=%d", budgetID, serverKnowledge)
+func loadCategories(prefix string, budgetID string, apiKey string, serverKnowledge int) Categories {
+	url := fmt.Sprintf("%s/budgets/%s/categories?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge)
 	bytes := request(
 		url,
 		apiKey)
@@ -178,9 +179,9 @@ func loadCategories(budgetID string, apiKey string, serverKnowledge int) Categor
 	return categories
 }
 
-func loadMonths(budgetID string, apiKey string, serverKnowledge int) Months {
+func loadMonths(prefix string, budgetID string, apiKey string, serverKnowledge int) Months {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/months?last_knowledge_of_server=%d", budgetID, serverKnowledge),
+		fmt.Sprintf("%s/budgets/%s/months?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge),
 		apiKey)
 
 	var months Months
@@ -188,10 +189,10 @@ func loadMonths(budgetID string, apiKey string, serverKnowledge int) Months {
 	return months
 }
 
-func loadCategoryMonths(budgetID string, apiKey, monthID string, categoryID string) CategoryMonth {
-	url := "https://api.youneedabudget.com/v1/budgets/%s/months/%s/categories/%s"
+func loadCategoryMonths(prefix string, budgetID string, apiKey, monthID string, categoryID string) CategoryMonth {
+	url := "%s/budgets/%s/months/%s/categories/%s"
 	bytes := request(
-		fmt.Sprintf(url, budgetID, monthID, categoryID),
+		fmt.Sprintf(url, prefix, budgetID, monthID, categoryID),
 		apiKey)
 
 	var categoryMonth CategoryMonth
@@ -199,9 +200,9 @@ func loadCategoryMonths(budgetID string, apiKey, monthID string, categoryID stri
 	return categoryMonth
 }
 
-func loadAccounts(budgetID string, apiKey string, serverKnowledge int) Accounts {
+func loadAccounts(prefix string, budgetID string, apiKey string, serverKnowledge int) Accounts {
 	bytes := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/accounts?last_knowledge_of_server=%d", budgetID, serverKnowledge),
+		fmt.Sprintf("%s/budgets/%s/accounts?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge),
 		apiKey)
 
 	var accounts Accounts
