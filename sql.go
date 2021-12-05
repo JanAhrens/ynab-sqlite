@@ -153,19 +153,19 @@ func loadServerKnowledge(ctx context.Context, tx *sql.Tx) (map[string]int, error
 	return serverKnowledge, nil
 }
 
-func updateServerKnowledge(ctx context.Context, tx *sql.Tx, sql string, value int) error {
-	statement, err := tx.Prepare(sql)
+func updateServerKnowledge(ctx context.Context, tx *sql.Tx, endpoint string, value int) error {
+	updateSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES(?, ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
+	statement, err := tx.Prepare(updateSQL)
 	if err != nil {
 		return err
 	}
-	if _, err := statement.ExecContext(ctx, value); err != nil {
+	if _, err := statement.ExecContext(ctx, endpoint, value); err != nil {
 		return err
 	}
 	return nil
 }
 
 func updateCategories(ctx context.Context, categories Categories, tx *sql.Tx) error {
-	serverKnowledgeSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES('categories', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
 	insertCategoryGroupSQL := `
     INSERT INTO category_group (
       id, name, hidden, deleted
@@ -208,7 +208,7 @@ func updateCategories(ctx context.Context, categories Categories, tx *sql.Tx) er
 		}
 	}
 
-	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, categories.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, "categories", categories.Data.ServerKnowledge)
 }
 
 func updateTransactions(ctx context.Context, transactions Transactions, tx *sql.Tx) error {
@@ -243,7 +243,6 @@ func updateTransactions(ctx context.Context, transactions Transactions, tx *sql.
 		category_name=excluded.category_name, transfer_account_id=excluded.transfer_account_id,
 		transfer_transaction_id=excluded.transfer_transaction_id, deleted=excluded.deleted;
 	`
-	serverKnowledgeSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES('transactions', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
 
 	for _, t := range transactions.Data.Transactions {
 		statement, err := tx.Prepare(insertTransactionSQL)
@@ -272,11 +271,10 @@ func updateTransactions(ctx context.Context, transactions Transactions, tx *sql.
 		}
 	}
 
-	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, transactions.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, "transactions", transactions.Data.ServerKnowledge)
 }
 
 func updateAccounts(ctx context.Context, accounts Accounts, tx *sql.Tx) error {
-	serverKnowledgeSQL := `INSERT INTO server_knowledge(endpoint, value) VALUES('accounts', ?) ON CONFLICT(endpoint) DO UPDATE SET value=excluded.value;`
 	insertAccountSQL := `
 		INSERT INTO account (
 			id, name, type, on_budget, closed, note, cleared_balance,
@@ -320,7 +318,7 @@ func updateAccounts(ctx context.Context, accounts Accounts, tx *sql.Tx) error {
 		}
 	}
 
-	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, accounts.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, "accounts", accounts.Data.ServerKnowledge)
 }
 
 func updateCategoryMonth(ctx context.Context, monthID string, categoryMonth CategoryMonth, tx *sql.Tx) error {
@@ -349,14 +347,7 @@ func updateCategoryMonth(ctx context.Context, monthID string, categoryMonth Cate
 }
 
 func updateMonthServerKnowledge(ctx context.Context, months Months, tx *sql.Tx) error {
-	serverKnowledgeSQL := `INSERT INTO server_knowledge (
-		endpoint, value
-	) VALUES('months', ?)
-	ON CONFLICT(endpoint) DO UPDATE SET
-		value=excluded.value
-	;`
-
-	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, months.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, "months", months.Data.ServerKnowledge)
 }
 
 func updateMonth(ctx context.Context, month month, tx *sql.Tx) error {
@@ -390,13 +381,6 @@ func updateMonth(ctx context.Context, month month, tx *sql.Tx) error {
 }
 
 func updatePayees(ctx context.Context, payees Payees, tx *sql.Tx) error {
-	serverKnowledgeSQL := `INSERT INTO server_knowledge (
-		endpoint, value
-	) VALUES('payees', ?)
-	ON CONFLICT(endpoint) DO UPDATE SET
-		value=excluded.value
-	;`
-
 	insertPayeeSQL := `INSERT INTO payee (
 		id, name, transfer_account_id, deleted
 	) VALUES(?, ?, ?, ?)
@@ -417,5 +401,5 @@ func updatePayees(ctx context.Context, payees Payees, tx *sql.Tx) error {
 		}
 	}
 
-	return updateServerKnowledge(ctx, tx, serverKnowledgeSQL, payees.Data.ServerKnowledge)
+	return updateServerKnowledge(ctx, tx, "payees", payees.Data.ServerKnowledge)
 }
