@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"io/ioutil"
 	"reflect"
 	"testing"
 
@@ -98,12 +100,25 @@ func TestUpdateCategories(t *testing.T) {
 	db, ctx, tx := prepareDBTx(t)
 	defer db.Close()
 
-	categories := Categories{}
-	categories.Data.ServerKnowledge = 42
-	// TODO initialize category_groups
+	content, err := ioutil.ReadFile("./fixtures/categories.json")
+	if err != nil {
+		t.Fatalf("failed to load fixure file %s", err)
+	}
+	var categories Categories
+	json.Unmarshal(content, &categories)
 
-	err := updateCategories(ctx, categories, tx)
+	err = updateCategories(ctx, categories, tx)
 	if err != nil {
 		t.Fatalf("updateCategories err = %s, want nil", err)
+	}
+
+	res := tx.QueryRowContext(ctx, "SELECT name FROM category_group WHERE id = 'e8e9fa0e-0667-4b8f-afb8-8f0c0a151a1d'")
+	var got string
+	err = res.Scan(&got)
+	if err != nil {
+		t.Fatalf("failed to query db: %s", err)
+	}
+	if want := "Internal Master Category"; got != want {
+		t.Fatalf("%q != %q", want, got)
 	}
 }
