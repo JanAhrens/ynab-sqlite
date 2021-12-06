@@ -1,1 +1,25 @@
-{"data":{"category":{"id":"843ff968-8a96-4c6c-bb97-a2fe4c28881c","category_group_id":"5423a142-b27a-4a54-b6a6-adfdb31a41bc","name":"Rent/Mortgage","hidden":false,"original_category_group_id":null,"note":null,"budgeted":2000,"activity":-1000,"balance":1000,"goal_type":null,"goal_creation_month":null,"goal_target":0,"goal_target_month":null,"goal_percentage_complete":null,"goal_months_to_budget":null,"goal_under_funded":null,"goal_overall_funded":null,"goal_overall_left":null,"deleted":false}}}
+{
+    "data": {
+        "category": {
+            "id": "843ff968-8a96-4c6c-bb97-a2fe4c28881c",
+            "category_group_id": "5423a142-b27a-4a54-b6a6-adfdb31a41bc",
+            "name": "Rent/Mortgage",
+            "hidden": false,
+            "original_category_group_id": null,
+            "note": null,
+            "budgeted": 2000,
+            "activity": -1000,
+            "balance": 1000,
+            "goal_type": null,
+            "goal_creation_month": null,
+            "goal_target": 0,
+            "goal_target_month": null,
+            "goal_percentage_complete": null,
+            "goal_months_to_budget": null,
+            "goal_under_funded": null,
+            "goal_overall_funded": null,
+            "goal_overall_left": null,
+            "deleted": false
+        }
+    }
+}

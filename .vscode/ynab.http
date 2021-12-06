@@ -28,3 +28,11 @@ Authorization: Bearer {{YNAB_API_KEY}}
 
 GET {{baseURL}}/accounts
 Authorization: Bearer {{YNAB_API_KEY}}
+
+### 
+GET {{baseURL}}/transactions
+Authorization: Bearer {{YNAB_API_KEY}}
+
+###
+GET {{baseURL}}/payees
+Authorization: Bearer {{YNAB_API_KEY}}

@@ -1,1 +1,37 @@
-{"data":{"accounts":[{"id":"9a329f5e-1eca-40c6-8ba1-a19b0d8cadd1","name":"Checker","type":"checking","on_budget":true,"closed":false,"note":null,"balance":95000,"cleared_balance":118000,"uncleared_balance":-23000,"transfer_payee_id":"db6deeec-b0ba-4b1e-a09f-1338822ec9d0","direct_import_linked":false,"direct_import_in_error":false,"deleted":false},{"id":"95d0b9ce-2c8d-436c-b239-590aa963e547","name":"Visa","type":"creditCard","on_budget":true,"closed":false,"note":null,"balance":0,"cleared_balance":0,"uncleared_balance":0,"transfer_payee_id":"5b9849f1-47bd-432d-9c8f-51cf537a830f","direct_import_linked":false,"direct_import_in_error":false,"deleted":false}],"server_knowledge":98}}
+{
+    "data": {
+        "accounts": [
+            {
+                "id": "9a329f5e-1eca-40c6-8ba1-a19b0d8cadd1",
+                "name": "Checker",
+                "type": "checking",
+                "on_budget": true,
+                "closed": false,
+                "note": null,
+                "balance": 95000,
+                "cleared_balance": 118000,
+                "uncleared_balance": -23000,
+                "transfer_payee_id": "db6deeec-b0ba-4b1e-a09f-1338822ec9d0",
+                "direct_import_linked": false,
+                "direct_import_in_error": false,
+                "deleted": false
+            },
+            {
+                "id": "95d0b9ce-2c8d-436c-b239-590aa963e547",
+                "name": "Visa",
+                "type": "creditCard",
+                "on_budget": true,
+                "closed": false,
+                "note": null,
+                "balance": 0,
+                "cleared_balance": 0,
+                "uncleared_balance": 0,
+                "transfer_payee_id": "5b9849f1-47bd-432d-9c8f-51cf537a830f",
+                "direct_import_linked": false,
+                "direct_import_in_error": false,
+                "deleted": false
+            }
+        ],
+        "server_knowledge": 98
+    }
+}

@@ -1,0 +1,49 @@
+{
+    "data": {
+        "payees": [
+            {
+                "id": "8a8fbcd5-2eda-478d-a977-c8c1122f6e3a",
+                "name": "Starting Balance",
+                "transfer_account_id": null,
+                "deleted": false
+            },
+            {
+                "id": "edbab96d-399f-4daa-bb69-c33f1246255f",
+                "name": "Manual Balance Adjustment",
+                "transfer_account_id": null,
+                "deleted": false
+            },
+            {
+                "id": "a4d5c352-e6b8-420e-aa16-265716411cbf",
+                "name": "Reconciliation Balance Adjustment",
+                "transfer_account_id": null,
+                "deleted": false
+            },
+            {
+                "id": "db6deeec-b0ba-4b1e-a09f-1338822ec9d0",
+                "name": "Transfer : Checker",
+                "transfer_account_id": "9a329f5e-1eca-40c6-8ba1-a19b0d8cadd1",
+                "deleted": false
+            },
+            {
+                "id": "5b9849f1-47bd-432d-9c8f-51cf537a830f",
+                "name": "Transfer : Visa",
+                "transfer_account_id": "95d0b9ce-2c8d-436c-b239-590aa963e547",
+                "deleted": false
+            },
+            {
+                "id": "59a894a9-d095-489e-afe2-98db572e0e16",
+                "name": "Rent",
+                "transfer_account_id": null,
+                "deleted": false
+            },
+            {
+                "id": "306c522d-93c1-436d-8667-b9a32661322e",
+                "name": "Hugo",
+                "transfer_account_id": null,
+                "deleted": false
+            }
+        ],
+        "server_knowledge": 98
+    }
+}
