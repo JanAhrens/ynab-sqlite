@@ -51,7 +51,8 @@ type Categories struct {
 	} `json:"data"`
 }
 
-type month struct {
+// Month is part of GET /v1/budgets/:id/months
+type Month struct {
 	Month        string `json:"month"`
 	Note         string `json:"note"`
 	Income       int    `json:"income"`
@@ -65,7 +66,7 @@ type month struct {
 // Months GET /v1/budgets/:id/months
 type Months struct {
 	Data struct {
-		Months          []month `json:"months"`
+		Months          []Month `json:"months"`
 		ServerKnowledge int     `json:"server_knowledge"`
 	} `json:"data"`
 }
@@ -161,7 +162,7 @@ func request(url string, apiKey string) *[]byte {
 
 	// check if response outside of 2xx or 3xx code
 	if !(res.StatusCode >= 200 && res.StatusCode <= 399) {
-		log.Fatal(fmt.Sprintf("%d", res.StatusCode))
+		log.Panicf(fmt.Sprintf("Failed request with status code %d", res.StatusCode))
 	}
 
 	bytes, _ := ioutil.ReadAll(res.Body)

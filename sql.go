@@ -350,7 +350,7 @@ func updateMonthServerKnowledge(ctx context.Context, months Months, tx *sql.Tx) 
 	return updateServerKnowledge(ctx, tx, "months", months.Data.ServerKnowledge)
 }
 
-func updateMonth(ctx context.Context, month month, tx *sql.Tx) error {
+func updateMonth(ctx context.Context, month Month, tx *sql.Tx) error {
 	insertMonthSQL := `
 		INSERT INTO month (
 			id, note, income, budgeted, activity, to_be_budgeted, age_of_money, deleted

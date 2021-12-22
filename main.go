@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -27,29 +28,50 @@ func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID st
 		return fmt.Errorf("could not update month server knowledge: %s", err)
 	}
 
-	accounts := loadAccounts(prefix, budgetID, apiKey, serverKnowledge["accounts"])
-	if err = updateAccounts(ctx, accounts, tx); err != nil {
-		return fmt.Errorf("could not update accounts: %s", err)
-	}
+	var wg sync.WaitGroup
 
-	transactions := loadTransactions(budgetID, apiKey, serverKnowledge["transactions"])
-	if err = updateTransactions(ctx, transactions, tx); err != nil {
-		return fmt.Errorf("could not update transactions: %s", err)
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		accounts := loadAccounts(prefix, budgetID, apiKey, serverKnowledge["accounts"])
+		if err = updateAccounts(ctx, accounts, tx); err != nil {
+			log.Panicf("could not update accounts: %s", err)
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		transactions := loadTransactions(budgetID, apiKey, serverKnowledge["transactions"])
+		if err = updateTransactions(ctx, transactions, tx); err != nil {
+			log.Panicf("could not update transactions: %s", err)
+		}
+	}()
 
 	for _, month := range months.Data.Months {
-		if err = updateMonth(ctx, month, tx); err != nil {
-			return fmt.Errorf("could not update months: %s", err)
-		}
-		for _, categoryGroup := range categories.Data.CategoryGroups {
-			for _, category := range categoryGroup.Categories {
-				categoryMonth := loadCategoryMonths(prefix, budgetID, apiKey, month.Month, category.ID)
-				if err = updateCategoryMonth(ctx, month.Month, categoryMonth, tx); err != nil {
-					return fmt.Errorf("could not update category month %s", err)
+		wg.Add(1)
+		go func(month Month) {
+			defer wg.Done()
+			log.Printf("Loading month %s", month.Month)
+			if err = updateMonth(ctx, month, tx); err != nil {
+				log.Panicf("could not update months: %s", err)
+			}
+			for _, categoryGroup := range categories.Data.CategoryGroups {
+				for _, category := range categoryGroup.Categories {
+					wg.Add(1)
+					func(month Month) {
+						defer wg.Done()
+						categoryMonth := loadCategoryMonths(prefix, budgetID, apiKey, month.Month, category.ID)
+						if err = updateCategoryMonth(ctx, month.Month, categoryMonth, tx); err != nil {
+							log.Panicf("could not update category month %s", err)
+						}
+					}(month)
 				}
 			}
-		}
+		}(month)
 	}
+
+	wg.Wait()
 
 	payees := loadPayees(budgetID, apiKey, serverKnowledge["payees"])
 	return updatePayees(ctx, payees, tx)
