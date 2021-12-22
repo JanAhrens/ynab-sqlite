@@ -1,7 +1,7 @@
 # ynab-sqlite
 
 Exports all data from a [YNAB](https://youneedadbudget.com) budget and stores it in a local [SQLite](https://sqlite.org/) database.
-When the program gets executed multiple times, only the changed data will be downloaded.
+When the program gets executed multiple times only the changed data will be downloaded.
 
 ## Getting started
 
@@ -11,11 +11,15 @@ Prerequisites: You need a [YNAB](https://youneedadbudget.com) account. A trial a
 
 2. Copy the access token and set the YNAB_API_KEY environment variable
 
+	```bash
 	export YNAB_API_KEY=722XXXXXXXXXXbbe4436302XXXXXXdc734XX35bd21cXXXXX2d4b5fafb3c06dXX
+	```
 
 3. Run the program
 
+	```bash
      go run .
+	 ```
 
 4. Explore the data using the sqlite3 cli (see queries section)
 
