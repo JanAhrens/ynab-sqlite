@@ -1,11 +1,11 @@
 # ynab-sqlite
 
-Exports all data from a [YNAB](https://youneedadbudget.com) budget and stores it in a local [SQLite](https://sqlite.org/) database.
+Exports all data from a [YNAB](https://youneedabudget.com) budget and stores it in a local [SQLite](https://sqlite.org/) database.
 When the program gets executed multiple times only the changed data will be downloaded.
 
 ## Getting started
 
-Prerequisites: You need a [YNAB](https://youneedadbudget.com) account. A trial account also works.
+Prerequisites: You need a [YNAB](https://youneedabudget.com) account. A trial account also works.
 
 1. Create a Personal Access Token in the [Developer Settings](https://app.youneedabudget.com/settings/developer)
 
