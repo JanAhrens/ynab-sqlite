@@ -146,7 +146,7 @@ type Payees struct {
 	} `json:"data"`
 }
 
-func request(url string, apiKey string) *[]byte {
+func request(url string, apiKey string) (*[]byte, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
@@ -162,70 +162,83 @@ func request(url string, apiKey string) *[]byte {
 
 	// check if response outside of 2xx or 3xx code
 	if !(res.StatusCode >= 200 && res.StatusCode <= 399) {
-		log.Panicf(fmt.Sprintf("Failed request with status code %d", res.StatusCode))
+		return nil, fmt.Errorf("failed request with status code %d", res.StatusCode)
 	}
 
 	bytes, _ := ioutil.ReadAll(res.Body)
-	return &bytes
+	return &bytes, nil
 }
 
 func loadCategories(prefix string, budgetID string, apiKey string, serverKnowledge int) Categories {
 	url := fmt.Sprintf("%s/budgets/%s/categories?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge)
-	bytes := request(
+	bytes, err := request(
 		url,
 		apiKey)
-
+	if err != nil {
+		log.Panic("failed to load categories list")
+	}
 	var categories Categories
 	json.Unmarshal(*bytes, &categories)
 	return categories
 }
 
 func loadMonths(prefix string, budgetID string, apiKey string, serverKnowledge int) Months {
-	bytes := request(
+	bytes, err := request(
 		fmt.Sprintf("%s/budgets/%s/months?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge),
 		apiKey)
-
+	if err != nil {
+		log.Panic("failed to load month list")
+	}
 	var months Months
 	json.Unmarshal(*bytes, &months)
 	return months
 }
 
-func loadCategoryMonths(prefix string, budgetID string, apiKey, monthID string, categoryID string) CategoryMonth {
+func loadCategoryMonths(prefix string, budgetID string, apiKey, monthID string, categoryID string) (CategoryMonth, error) {
+	var categoryMonth CategoryMonth
+
 	url := "%s/budgets/%s/months/%s/categories/%s"
-	bytes := request(
+	bytes, err := request(
 		fmt.Sprintf(url, prefix, budgetID, monthID, categoryID),
 		apiKey)
-
-	var categoryMonth CategoryMonth
+	if err != nil {
+		return categoryMonth, err
+	}
 	json.Unmarshal(*bytes, &categoryMonth)
-	return categoryMonth
+	return categoryMonth, nil
 }
 
 func loadAccounts(prefix string, budgetID string, apiKey string, serverKnowledge int) Accounts {
-	bytes := request(
+	bytes, err := request(
 		fmt.Sprintf("%s/budgets/%s/accounts?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge),
 		apiKey)
-
+	if err != nil {
+		log.Panic("Failed to load accounts list")
+	}
 	var accounts Accounts
 	json.Unmarshal(*bytes, &accounts)
 	return accounts
 }
 
 func loadTransactions(budgetID string, apiKey string, serverKnowledge int) Transactions {
-	bytes := request(
+	bytes, err := request(
 		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?last_knowledge_of_server=%d", budgetID, serverKnowledge),
 		apiKey)
-
+	if err != nil {
+		log.Panic("Failed to load transactions list")
+	}
 	var transactions Transactions
 	json.Unmarshal(*bytes, &transactions)
 	return transactions
 }
 
 func loadPayees(budgetID string, apiKey string, serverKnowledge int) Payees {
-	bytes := request(
+	bytes, err := request(
 		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/payees?last_knowledge_of_server=%d", budgetID, serverKnowledge),
 		apiKey)
-
+	if err != nil {
+		log.Panic("failed to load payees")
+	}
 	var payees Payees
 	json.Unmarshal(*bytes, &payees)
 	return payees

@@ -79,7 +79,7 @@ func TestLoadCategoryMonths(t *testing.T) {
 	ts := fixtureGET(t, "./fixtures/category-month.json")
 	defer ts.Close()
 
-	categoryMonth := loadCategoryMonths(ts.URL, "last-used", "token", "month-id", "category-id")
+	categoryMonth, _ := loadCategoryMonths(ts.URL, "last-used", "token", "month-id", "category-id")
 	if got, want := categoryMonth.Data.Category.Name, "Rent/Mortgage"; got != want {
 		t.Fatalf("categoryMonth.Data.Category.Name = %q, want %q", got, want)
 	}

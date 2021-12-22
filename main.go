@@ -61,7 +61,11 @@ func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID st
 					wg.Add(1)
 					func(month Month) {
 						defer wg.Done()
-						categoryMonth := loadCategoryMonths(prefix, budgetID, apiKey, month.Month, category.ID)
+						categoryMonth, err := loadCategoryMonths(prefix, budgetID, apiKey, month.Month, category.ID)
+						if err != nil {
+							log.Printf("skipping category %s in month %s", category.ID, month.Month)
+							return
+						}
 						if err = updateCategoryMonth(ctx, month.Month, categoryMonth, tx); err != nil {
 							log.Panicf("could not update category month %s", err)
 						}
