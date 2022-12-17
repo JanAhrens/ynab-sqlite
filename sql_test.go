@@ -227,18 +227,18 @@ func TestUpdateCategoryMonth(t *testing.T) {
 	if err := updateCategoryMonth(ctx, "2021-11-01", categoryMonth, tx); err != nil {
 		t.Fatalf("updateCategoryMonth err = %s, want nil", err)
 	}
-	got := queryString(ctx, tx, `SELECT budgeted FROM category_month WHERE month_id = "2021-11-01" and category_id = "843ff968-8a96-4c6c-bb97-a2fe4c28881c"`, t)
-	if want := "2000"; got != want {
+	got := queryString(ctx, tx, `SELECT budgeted FROM category_month WHERE month_id = "2022-12-01" and category_id = "94b9ac05-6a55-4e33-8f52-65931515da96"`, t)
+	if want := "2000000"; got != want {
 		t.Fatalf("%q != %q", want, got)
 	}
 
 	// update category_month
+	categoryMonth.Data.Month.Categories[0].Budgeted = 4200
 
-	categoryMonth.Data.Category.Budgeted = 4200
-	if err := updateCategoryMonth(ctx, "2021-11-01", categoryMonth, tx); err != nil {
+	if err := updateCategoryMonth(ctx, "2022-12-01", categoryMonth, tx); err != nil {
 		t.Fatalf("updateCategoryMonth err = %s, want nil", err)
 	}
-	got = queryString(ctx, tx, `SELECT budgeted FROM category_month WHERE month_id = "2021-11-01" and category_id = "843ff968-8a96-4c6c-bb97-a2fe4c28881c"`, t)
+	got = queryString(ctx, tx, `SELECT budgeted FROM category_month WHERE month_id = "2022-12-01" and category_id = "94b9ac05-6a55-4e33-8f52-65931515da96"`, t)
 	if want := "4200"; got != want {
 		t.Fatalf("%q != %q", want, got)
 	}

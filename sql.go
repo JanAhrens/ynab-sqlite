@@ -335,15 +335,20 @@ func updateCategoryMonth(ctx context.Context, monthID string, categoryMonth Cate
 	if err != nil {
 		return err
 	}
-	category := categoryMonth.Data.Category
-	_, err = statement.ExecContext(ctx,
-		monthID,
-		category.ID,
-		category.Budgeted,
-		category.Activity,
-		category.Balance,
-	)
-	return err
+
+	for _, category := range categoryMonth.Data.Month.Categories {
+		_, err = statement.ExecContext(ctx,
+			categoryMonth.Data.Month.Month.Month,
+			category.ID,
+			category.Budgeted,
+			category.Activity,
+			category.Balance,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func updateMonthServerKnowledge(ctx context.Context, months Months, tx *sql.Tx) error {

@@ -79,20 +79,20 @@ func TestLoadCategoryMonths(t *testing.T) {
 	ts := fixtureGET(t, "./fixtures/category-month.json")
 	defer ts.Close()
 
-	categoryMonth, _ := loadCategoryMonths(ts.URL, "last-used", "token", "month-id", "category-id")
-	if got, want := categoryMonth.Data.Category.Name, "Rent/Mortgage"; got != want {
+	categoryMonth, _ := loadCategoryMonths(ts.URL, "last-used", "token", "month-id")
+	if got, want := categoryMonth.Data.Month.Categories[0].Name, "Electric 213"; got != want {
 		t.Fatalf("categoryMonth.Data.Category.Name = %q, want %q", got, want)
 	}
-	category := categoryMonth.Data.Category
-	assertValue(t, "ID", category.ID, "843ff968-8a96-4c6c-bb97-a2fe4c28881c")
+	category := categoryMonth.Data.Month.Categories[0]
+	assertValue(t, "ID", category.ID, "94b9ac05-6a55-4e33-8f52-65931515da96")
 	assertValue(t, "CategoryGroupID", category.CategoryGroupID, "5423a142-b27a-4a54-b6a6-adfdb31a41bc")
-	assertValue(t, "Name", category.Name, "Rent/Mortgage")
+	assertValue(t, "Name", category.Name, "Electric 213")
 	assertValue(t, "Hidden", category.Hidden, false)
 	assertNil(t, "OriginalCategoryGroupID", category.OriginalCategoryGroupID)
 	assertNil(t, "Note", category.Note)
-	assertInt(t, "Budgeted", category.Budgeted, 2000)
-	assertInt(t, "Activity", category.Activity, -1000)
-	assertInt(t, "Balance", category.Balance, 1000)
+	assertInt(t, "Budgeted", category.Budgeted, 2000000)
+	assertInt(t, "Activity", category.Activity, -2000)
+	assertInt(t, "Balance", category.Balance, 2001000)
 	assertNil(t, "GoalType", category.GoalType)
 	assertNil(t, "GoalCreationMonth", category.GoalCreationMonth)
 	assertInt(t, "GoalTarget", category.GoalTarget, 0)

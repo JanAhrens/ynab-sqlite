@@ -47,3 +47,19 @@ FROM "transaction"
 GROUP BY strftime("%Y-%m-01", "date")
 ORDER BY "date";
 ```
+
+### Development of spending in a category group
+
+```
+SELECT
+	month_id,
+	CAST(SUM(activity) AS REAL)/1000 AS sum_of_activity
+FROM category_month
+WHERE category_id IN (
+	SELECT id FROM category
+	WHERE category_group_id = 'XYZ'
+	AND deleted <> 1
+)
+GROUP BY month_id
+ORDER BY month_id
+```

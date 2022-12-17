@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -28,54 +27,32 @@ func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID st
 		return fmt.Errorf("could not update month server knowledge: %s", err)
 	}
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		accounts := loadAccounts(prefix, budgetID, apiKey, serverKnowledge["accounts"])
-		if err = updateAccounts(ctx, accounts, tx); err != nil {
-			log.Panicf("could not update accounts: %s", err)
-		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		transactions := loadTransactions(budgetID, apiKey, serverKnowledge["transactions"])
-		if err = updateTransactions(ctx, transactions, tx); err != nil {
-			log.Panicf("could not update transactions: %s", err)
-		}
-	}()
-
-	for _, month := range months.Data.Months {
-		wg.Add(1)
-		go func(month Month) {
-			defer wg.Done()
-			log.Printf("Loading month %s", month.Month)
-			if err = updateMonth(ctx, month, tx); err != nil {
-				log.Panicf("could not update months: %s", err)
-			}
-			for _, categoryGroup := range categories.Data.CategoryGroups {
-				for _, category := range categoryGroup.Categories {
-					wg.Add(1)
-					func(month Month) {
-						defer wg.Done()
-						categoryMonth, err := loadCategoryMonths(prefix, budgetID, apiKey, month.Month, category.ID)
-						if err != nil {
-							log.Printf("skipping category %s in month %s", category.ID, month.Month)
-							return
-						}
-						if err = updateCategoryMonth(ctx, month.Month, categoryMonth, tx); err != nil {
-							log.Panicf("could not update category month %s", err)
-						}
-					}(month)
-				}
-			}
-		}(month)
+	accounts := loadAccounts(prefix, budgetID, apiKey, serverKnowledge["accounts"])
+	if err = updateAccounts(ctx, accounts, tx); err != nil {
+		log.Panicf("could not update accounts: %s", err)
 	}
 
-	wg.Wait()
+	transactions := loadTransactions(budgetID, apiKey, serverKnowledge["transactions"])
+	if err = updateTransactions(ctx, transactions, tx); err != nil {
+		log.Panicf("could not update transactions: %s", err)
+	}
+
+	for _, month := range months.Data.Months {
+
+		log.Printf("Loading month %s", month.Month)
+		if err = updateMonth(ctx, month, tx); err != nil {
+			log.Panicf("could not update months: %s", err)
+		}
+
+		categoryMonth, err := loadCategoryMonths(prefix, budgetID, apiKey, month.Month)
+		if err != nil {
+			log.Printf("skipping month %s", month.Month)
+		}
+		if err = updateCategoryMonth(ctx, month.Month, categoryMonth, tx); err != nil {
+			log.Panicf("could not update category month %s", err)
+		}
+
+	}
 
 	payees := loadPayees(budgetID, apiKey, serverKnowledge["payees"])
 	return updatePayees(ctx, payees, tx)

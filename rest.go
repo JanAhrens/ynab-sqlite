@@ -33,7 +33,10 @@ type category struct {
 // CategoryMonth GET /v1/budgets/:id/months/:month_id/categories/:category_id
 type CategoryMonth struct {
 	Data struct {
-		Category category
+		Month struct {
+			Month
+			Categories []category
+		}
 	}
 }
 
@@ -194,12 +197,12 @@ func loadMonths(prefix string, budgetID string, apiKey string, serverKnowledge i
 	return months
 }
 
-func loadCategoryMonths(prefix string, budgetID string, apiKey, monthID string, categoryID string) (CategoryMonth, error) {
+func loadCategoryMonths(prefix string, budgetID string, apiKey, monthID string) (CategoryMonth, error) {
 	var categoryMonth CategoryMonth
 
-	url := "%s/budgets/%s/months/%s/categories/%s"
+	url := "%s/budgets/%s/months/%s"
 	bytes, err := request(
-		fmt.Sprintf(url, prefix, budgetID, monthID, categoryID),
+		fmt.Sprintf(url, prefix, budgetID, monthID),
 		apiKey)
 	if err != nil {
 		return categoryMonth, err

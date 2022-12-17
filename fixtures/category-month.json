@@ -1,15 +1,25 @@
 {
     "data": {
-        "category": {
-            "id": "843ff968-8a96-4c6c-bb97-a2fe4c28881c",
+      "month": {
+        "month": "2022-12-01",
+        "note": null,
+        "income": 0,
+        "budgeted": 2000000,
+        "activity": 100000,
+        "to_be_budgeted": 0,
+        "age_of_money": 30,
+        "deleted": false,
+        "categories": [
+          {
+            "id": "94b9ac05-6a55-4e33-8f52-65931515da96",
             "category_group_id": "5423a142-b27a-4a54-b6a6-adfdb31a41bc",
-            "name": "Rent/Mortgage",
+            "name": "Electric 213",
             "hidden": false,
             "original_category_group_id": null,
             "note": null,
-            "budgeted": 2000,
-            "activity": -1000,
-            "balance": 1000,
+            "budgeted": 2000000,
+            "activity": -2000,
+            "balance": 2001000,
             "goal_type": null,
             "goal_creation_month": null,
             "goal_target": 0,
@@ -20,6 +30,8 @@
             "goal_overall_funded": null,
             "goal_overall_left": null,
             "deleted": false
-        }
+          }
+        ]
+      }
     }
-}
+  }
