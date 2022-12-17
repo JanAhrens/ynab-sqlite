@@ -32,7 +32,7 @@ func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID st
 		log.Panicf("could not update accounts: %s", err)
 	}
 
-	transactions := loadTransactions(budgetID, apiKey, serverKnowledge["transactions"])
+	transactions := loadTransactions(prefix, budgetID, apiKey, serverKnowledge["transactions"])
 	if err = updateTransactions(ctx, transactions, tx); err != nil {
 		log.Panicf("could not update transactions: %s", err)
 	}
@@ -54,7 +54,7 @@ func execTransaction(ctx context.Context, tx *sql.Tx, apiKey string, budgetID st
 
 	}
 
-	payees := loadPayees(budgetID, apiKey, serverKnowledge["payees"])
+	payees := loadPayees(prefix, budgetID, apiKey, serverKnowledge["payees"])
 	return updatePayees(ctx, payees, tx)
 }
 

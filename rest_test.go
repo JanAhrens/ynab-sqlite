@@ -1,9 +1,9 @@
 package main
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -40,7 +40,7 @@ func assertNilInt(t *testing.T, fieldName string, got *int) {
 func fixtureGET(t *testing.T, file string) *httptest.Server {
 	t.Helper()
 
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		t.Fatalf("failed to read fixture file %s", file)
 	}
@@ -140,4 +140,51 @@ func TestAccounts(t *testing.T) {
 	assertValue(t, "DirectImportLinked", first.DirectImportLinked, false)
 	assertValue(t, "DirectImportInError", first.DirectImportInError, false)
 	assertValue(t, "Deleted", first.Deleted, false)
+}
+
+func TestTransactions(t *testing.T) {
+	ts := fixtureGET(t, "./fixtures/transactions.json")
+	defer ts.Close()
+
+	transactions := loadTransactions(ts.URL, "last-used", "token", 0)
+	if got, want := len(transactions.Data.Transactions), 4; got != want {
+		t.Fatalf("len(transactions.Data.Transactions) = %d, want %d", got, want)
+	}
+
+	first := transactions.Data.Transactions[0]
+	assertValue(t, "ID", first.ID, "295c1843-14dd-46ed-bed5-3d02c17a82db")
+	assertValue(t, "Date", first.Date, "2021-11-24")
+	assertValue(t, "Amount", first.Amount, -23000)
+	assertValue(t, "Memo", first.Memo, "")
+	assertValue(t, "Cleared", first.Cleared, "uncleared")
+	assertValue(t, "Approved", first.Approved, true)
+	assertNil(t, "FlagColor", first.FlagColor)
+	assertValue(t, "AccountId", first.AccountID, "9a329f5e-1eca-40c6-8ba1-a19b0d8cadd1")
+	assertValue(t, "AccountName", first.AccountName, "Checker")
+	assertValue(t, "PayeeId", first.PayeeID, "306c522d-93c1-436d-8667-b9a32661322e")
+	assertValue(t, "PayeeName", first.PayeeName, "Hugo")
+	assertValue(t, "CategoryId", first.CategoryID, "7d3b19a3-a347-4a10-befc-b966f278aa3e")
+	assertValue(t, "CategoryName", first.CategoryName, "Water")
+	assertNil(t, "TransferTransactionId", first.TransferTransactionID)
+	assertNil(t, "MatchedTransactionId", first.MatchedTransactionID)
+	assertNil(t, "ImportId", first.ImportID)
+	assertValue(t, "Deleted", first.Deleted, false)
+	assertValue(t, "len(Subtransactions)=0", len(first.Subtransactions), 0)
+}
+
+func TestPayees(t *testing.T) {
+	ts := fixtureGET(t, "./fixtures/payees.json")
+	defer ts.Close()
+
+	payees := loadPayees(ts.URL, "last-used", "token", 0)
+	if got, want := len(payees.Data.Payees), 7; got != want {
+		t.Fatalf("len(payees.Data.Payees) = %d, want %d", got, want)
+	}
+
+	first := payees.Data.Payees[0]
+	assertValue(t, "ID", first.ID, "8a8fbcd5-2eda-478d-a977-c8c1122f6e3a")
+	assertValue(t, "Name", first.Name, "Starting Balance")
+	assertNil(t, "TransferAccountId", first.TransferAccountID)
+	assertValue(t, "Deleted", first.Deleted, false)
+
 }

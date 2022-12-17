@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -100,24 +100,24 @@ type Accounts struct {
 type Transactions struct {
 	Data struct {
 		Transactions []struct {
-			ID                    string `json:"id"`
-			Date                  string `json:"date"`
-			Amount                int    `json:"amount"`
-			Memo                  string `json:"memo"`
-			Cleared               string `json:"cleared"`
-			Approved              bool   `json:"approved"`
-			FlagColor             string `json:"flag_color"`
-			AccountID             string `json:"account_id"`
-			PayeeID               string `json:"payee_id"`
-			CategoryID            string `json:"category_id"`
-			TransferAccountID     string `json:"transfer_account_id"`
-			TransferTransactionID string `json:"transfer_transaction_id"`
-			MatchedTransactionID  string `json:"matched_transaction_id"`
-			ImportID              string `json:"import_id"`
-			Deleted               bool   `json:"deleted"`
-			AccountName           string `json:"account_name"`
-			PayeeName             string `json:"payee_name"`
-			CategoryName          string `json:"category_name"`
+			ID                    string  `json:"id"`
+			Date                  string  `json:"date"`
+			Amount                int     `json:"amount"`
+			Memo                  string  `json:"memo"`
+			Cleared               string  `json:"cleared"`
+			Approved              bool    `json:"approved"`
+			FlagColor             *string `json:"flag_color"`
+			AccountID             string  `json:"account_id"`
+			PayeeID               string  `json:"payee_id"`
+			CategoryID            string  `json:"category_id"`
+			TransferAccountID     string  `json:"transfer_account_id"`
+			TransferTransactionID *string `json:"transfer_transaction_id"`
+			MatchedTransactionID  *string `json:"matched_transaction_id"`
+			ImportID              *string `json:"import_id"`
+			Deleted               bool    `json:"deleted"`
+			AccountName           string  `json:"account_name"`
+			PayeeName             string  `json:"payee_name"`
+			CategoryName          string  `json:"category_name"`
 			Subtransactions       []struct {
 				ID                    string `json:"id"`
 				TransactionID         string `json:"transaction_id"`
@@ -140,10 +140,10 @@ type Transactions struct {
 type Payees struct {
 	Data struct {
 		Payees []struct {
-			ID                string `json:"id"`
-			Name              string `json:"name"`
-			TransferAccountID string `json:"transfer_account_id"`
-			Deleted           bool   `json:"deleted"`
+			ID                string  `json:"id"`
+			Name              string  `json:"name"`
+			TransferAccountID *string `json:"transfer_account_id"`
+			Deleted           bool    `json:"deleted"`
 		} `json:"payees"`
 		ServerKnowledge int `json:"server_knowledge"`
 	} `json:"data"`
@@ -168,7 +168,7 @@ func request(url string, apiKey string) (*[]byte, error) {
 		return nil, fmt.Errorf("failed request with status code %d", res.StatusCode)
 	}
 
-	bytes, _ := ioutil.ReadAll(res.Body)
+	bytes, _ := io.ReadAll(res.Body)
 	return &bytes, nil
 }
 
@@ -223,9 +223,9 @@ func loadAccounts(prefix string, budgetID string, apiKey string, serverKnowledge
 	return accounts
 }
 
-func loadTransactions(budgetID string, apiKey string, serverKnowledge int) Transactions {
+func loadTransactions(prefix string, budgetID string, apiKey string, serverKnowledge int) Transactions {
 	bytes, err := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/transactions?last_knowledge_of_server=%d", budgetID, serverKnowledge),
+		fmt.Sprintf("%s/budgets/%s/transactions?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge),
 		apiKey)
 	if err != nil {
 		log.Panic("Failed to load transactions list")
@@ -235,9 +235,9 @@ func loadTransactions(budgetID string, apiKey string, serverKnowledge int) Trans
 	return transactions
 }
 
-func loadPayees(budgetID string, apiKey string, serverKnowledge int) Payees {
+func loadPayees(prefix string, budgetID string, apiKey string, serverKnowledge int) Payees {
 	bytes, err := request(
-		fmt.Sprintf("https://api.youneedabudget.com/v1/budgets/%s/payees?last_knowledge_of_server=%d", budgetID, serverKnowledge),
+		fmt.Sprintf("%s/budgets/%s/payees?last_knowledge_of_server=%d", prefix, budgetID, serverKnowledge),
 		apiKey)
 	if err != nil {
 		log.Panic("failed to load payees")

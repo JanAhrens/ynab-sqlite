@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 
@@ -47,7 +47,7 @@ func queryString(ctx context.Context, tx *sql.Tx, query string, t *testing.T) st
 
 func loadFixture(path string, typ interface{}, t *testing.T) {
 	t.Helper()
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("failed to load fixure file %s", err)
 	}
