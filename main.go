@@ -99,6 +99,4 @@ func main() {
 	if err != nil {
 		log.Fatal("failure in database transaction")
 	}
-
-	db.Close()
 }
