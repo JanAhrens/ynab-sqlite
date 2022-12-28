@@ -50,7 +50,7 @@ ORDER BY "date";
 
 ### Development of spending in a category group
 
-```
+```sql
 SELECT
 	month_id,
 	CAST(SUM(activity) AS REAL)/1000 AS sum_of_activity
@@ -62,4 +62,21 @@ WHERE category_id IN (
 )
 GROUP BY month_id
 ORDER BY month_id
+```
+
+### Transactions and subtransactions in a category
+
+
+```sql
+SELECT date, payee_name, amount, category_name FROM (
+  SELECT t.date, t.payee_name, cast(s.amount as real)/1000 as amount, s.category_name, s.category_id
+    FROM `subtransaction` s
+    JOIN `transaction` t ON s.transaction_id = t.id
+  UNION
+  SELECT t.date, t.payee_name, cast(t.amount as real)/1000 as amount, t.category_name, t.category_id
+    FROM `transaction` t
+)
+WHERE category_name like '%foobar%'
+AND date LIKE '2022-%'
+ORDER by date desc
 ```
